@@ -1,0 +1,4 @@
+#!/usr/bin/env jruby -Eutf-8:utf-8 -Ku -U -J-Xmx1024m
+
+require 'rubygems'
+require 'lumix/cli'
