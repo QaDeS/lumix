@@ -28,6 +28,15 @@ module Lumix
     conc.link!
   end
 
+  def simulate_link
+    conc.simulate!
+    conc.link!
+  end
+  
+  def link
+    conc.link
+  end
+
   def reconnect(opts = {})
     @conc = create_concordancer(opts)
   end

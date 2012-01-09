@@ -13,12 +13,13 @@ require 'lumix/model/sequel_models'
 require 'lumix/thread_pool'
 require 'lumix/textprocessing'
 require 'lumix/lookup_search'
+#require 'lumix/fast_search'
 
 module Lumix
   WORKERS = (ENV['LUMIX_WORKERS'] || 20).to_i
   RELINK = ENV['LUMIX_RELINK']
 
-  DB_VERSION = 3
+  DB_VERSION = 4
 
   class ::String
     def digest
@@ -53,7 +54,11 @@ module Lumix
     end
 
     def strategy
-      @strategy ||= LookupSearch.new(@db, @progress_proc)
+      @strategy ||= SearchStrategy.new(@db, @progress_proc)
+    end
+
+    def create_link_pool
+      Pool.new(strategy.concurrent_link? ? 4 : 1)
     end
 
     def link_on_import?
@@ -81,7 +86,7 @@ module Lumix
       end
 
       File.open('unprocessed.lst', 'a') do |up|
-        l = Pool.new(1)
+        l = create_link_pool
         p = Pool.new(WORKERS)
 
         l.schedule{ link! } if RELINK
@@ -160,6 +165,10 @@ module Lumix
       TaggedText.ids
     end
 
+    def simulate!
+      strategy.simulate!
+    end
+
     def link!(*ids)
       link(*ids) do |ds|
         ds.delete
@@ -172,7 +181,7 @@ module Lumix
       prog = Progress.new(:link, ids.size)
       progress(prog)
 
-      p = Pool.new(1)
+      p = create_link_pool
       ids.each_with_index do |id, index|
         #ds = db[:assoc].filter(:text_id => id)
         #yield ds if block_given?
@@ -222,12 +231,20 @@ module Lumix
     end
 
     def retag(text)
+      chunks = text.split(/[ \n]/)
+      return text if (token = chunks.first.split(/\|/)).size != 4 # looks pre-retagged
+      tag_position = if token[2] =~ /\d+/ && token[3] =~ /\d+/ # looks like fulltagged
+        1
+      else
+        2
+      end
+      
       result = ''
-      text.split(/[ \n]/).map do |chunk|
+      chunks.each do |chunk|
         next unless chunk.empty?
-        word, lemma, tag, tag2 = chunk.split(/\|/)
+        word, tag = chunk.split(/\|/)
         result << ' ' unless result.empty?
-        result << "#{word}|#{tag}"
+        result << "#{word}|#{tag[tag_position]}"
       end
       return result
     end

@@ -2,14 +2,12 @@ module Lumix
   class LookupFilter
 
     attr_reader :results, :filter
-
-    Filter = Struct.new(:word, :tag)
-
-    def initialize(lookup, filter, &result_proc)
+    
+    def initialize(filter, &result_proc)
       @filter = filter
       @result_proc = result_proc
 
-      @filters = create_filters(lookup, filter)
+      @re = create_re(filter)
       @results = 0
     end
 
@@ -19,23 +17,22 @@ module Lumix
     end
 
     def apply(lookup, &block)
-      lookup.find(@filters) do |range|
+      results = @re.map do |(type, re)|
+        lookup.send("find_#{type}", re)
+      end
+      lookup.union(*results).each do |id|
+        range = lookup.text_range(id, id + @re.size - 1) # TODO make more dynamic
         block[*range] if block and range
       end
     end
 
-    def create_filters(lookup, filter)
+    def create_re(filter)
       filter.scan(/(?:(?:\"([^\"]+)\")|(\S+))+/).map do |word, tag|
-        word_re = to_re(word)
-        tag_re = to_re(tag)
-        word_ids = lookup.find_word(word_re) if word_re
-        tag_ids = lookup.find_tag(tag_re) if tag_re
-        Filter.new(word_ids, tag_ids)
+        word ? [:word, to_re(word)] : [:tag, to_re(tag)]
       end
     end
 
     def to_re(txt)
-      return nil if txt.nil? || txt.empty?
       Regexp.new('^' + txt.gsub(/\s/, '_').gsub(/\*/, '\S*').gsub(/\?/, '\S') + '$')
     end
 

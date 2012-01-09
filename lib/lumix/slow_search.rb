@@ -8,6 +8,10 @@ module Lumix
       @progress = progress
     end
 
+    def concurrent_link?
+      true
+    end
+
     def link_text(id)
       t = TaggedText[id]
       text = t.text
@@ -96,4 +100,5 @@ module Lumix
 
   end
 
+  SearchStrategy = SlowSearch
 end

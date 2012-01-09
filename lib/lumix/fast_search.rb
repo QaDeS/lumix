@@ -13,6 +13,10 @@ module Lumix
       @progress = progress
     end
 
+    def concurrent_link?
+      true
+    end
+
     def link_text(id)
       ds = TaggedText[id]
       return ds.fulltagged if ds.fulltagged
@@ -83,4 +87,5 @@ module Lumix
 
   end
 
+  SearchStrategy = FastSearch
 end

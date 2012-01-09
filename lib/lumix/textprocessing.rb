@@ -9,7 +9,6 @@ require 'lumix/charset' unless RUBY_ENGINE =~ /maglev/i
 class TextProcessing
 
   attr_accessor :lang
-  RPC = SOAP::WSDLDriverFactory.new('http://www.racai.ro/webservices/TextProcessing.asmx?WSDL').create_rpc_driver
 
   def initialize(lang = 'ro')
     @lang = lang
@@ -21,7 +20,7 @@ class TextProcessing
 #      wsdl.create_rpc_driver
 #      Savon::Client.new('http://www.racai.ro/webservices/TextProcessing.asmx?WSDL')
 #    end
-    RPC
+    @rpc ||= SOAP::WSDLDriverFactory.new('http://www.racai.ro/webservices/TextProcessing.asmx?WSDL').create_rpc_driver
   end
 
   # the core processing routing using the webservice
@@ -39,16 +38,23 @@ class TextProcessing
     @entities.decode()
   end
 
-  # inserts "tagged" as the second to last part in the filename
+  # inserts "tagged" as the second to last part in the filename and as parent folder
   # e.g.
-  #   test.txt -> test.tagged.txt
+  #   test.txt -> tagged/test.tagged.txt
   # special case when no extension is present:
   #   README -> README.tagged
   def create_tagged_filename(infile)
-    components = infile.split(/\./)
+    path = infile.split(/\//)
+
+    # take care of the filename...
+    components = path.pop.split(/\./)
     position = [1, components.size-1].max
     components.insert position, 'tagged'
-    components.join '.'
+    path.push components.join('.')
+
+    # ...and of the path
+    path.insert -2, 'tagged'
+    path.join '/'
   end
 
   def to_filelist(*files)

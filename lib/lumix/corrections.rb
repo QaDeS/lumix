@@ -1,8 +1,19 @@
 require 'lumix/charset'
 
 CORRECTIONS = <<-TXT
+catre | S
+fetite | NPRN
+in | S
+si | C
+circa | R
+fata de| S
+maxima | ASON
+inainte| R
+in materie de | R
+tin | V3
+beneficiaza | V3
 : | COLON
-ocupa | V3
+ocupa | VN
 asigurata | VPSF
 mine | PPSA
 batut | VPSM
@@ -10,8 +21,8 @@ insa | C
 impotriva | S
 americana | ASN
 caruia | R
-da | V3
-duce| V3
+da | VN
+duce| VN
 primeasca | V3
 daca | C
 bulgara | ASN
@@ -33,9 +44,17 @@ Miclici| NP
 fara | S
 cit | PI
 sugereaza | V3
-incasa | V3
+incasa | VN
 circa | R
 ghiceste | V3
+tarile |NPRY
+araba | ASN
+citeva | PI
+schimbindu | VG
+dupa | S
+uleiurilor_vegetale | NPOY
+botosaneana | ASN
+oricarui | PI
 TXT
 
 def corrections
@@ -52,10 +71,14 @@ def correct(t)
   end
 end
 
-def correct_all
-  fs = Dir.glob('*tagged*')
+def correct_all(path)
+  fs = Dir.glob(File.join(path, '*tagged*'))
   fs.each do |fn|
     t = correct(File.read(fn))
     File.open(fn, 'w') { |f| f.print t }
   end
+end
+
+if $0 == __FILE__
+  correct_all ARGV[0]
 end
