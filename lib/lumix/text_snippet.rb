@@ -22,7 +22,11 @@ module Lumix
       #cleanup($1)
     end
     def cleanup(txt)
+      begin
       txt.gsub(/\s+/, ' ')
+      rescue
+        puts "Error in #{name}"
+      end
     end
   end
 

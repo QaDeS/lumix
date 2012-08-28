@@ -1,14 +1,14 @@
 class CreateLookupTables < Sequel::Migration
 
   def up
-    create_table :tags do
+    create_table :tags, :tablespace => 'Memory' do
       primary_key :id
       String :tag
 
       index :tag, :unique => true
     end
 
-    create_table :words do
+    create_table :words, :tablespace => 'Memory' do
       primary_key :id
       String :word
 
@@ -28,9 +28,9 @@ class CreateLookupTables < Sequel::Migration
       Integer :tagged_begin
       Integer :tagged_end
 
-      index [:text_id, :position], :unique => true
-      index :word_id
-      index :tag_id
+      index [:text_id, :position], :unique => true, :tablespace => 'Memory'
+      index :word_id, :tablespace => 'Memory'
+      index :tag_id, :tablespace => 'Memory'
     end
 
   end

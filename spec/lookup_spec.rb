@@ -3,7 +3,8 @@ $: << File.expand_path('../../lib', __FILE__)
 # and open the template in the editor.
 
 require 'lumix/lookup_search'
-require 'lumix/model/mock_models'
+require 'lumix/model/sequel_models'
+require 'lumix/concordancer'
 
 puts RUBY_PLATFORM
 
@@ -13,9 +14,10 @@ TAGGED = "They|PPER3 have|AUXP business|NN uses|VERB3 derp|ADNE too|ADVE " +
 module Helper
   def lookup
     return @lookup if @lookup
-    @lookup = Lumix::LookupSearch.new(nil, nil)
-    @text = TaggedText.create(:id => 0, :filename => "text", :text => TEXT, :tagged => TAGGED)
-    @lookup.link_text(0)
+    @conc = Lumix::Concordancer.new('jdbc:postgresql://localhost:5433/concordancer_test?user=concordancer&password=concordancer', proc{})
+    @lookup = Lumix::LookupSearch.new(@conc.db, nil)
+    @text = TaggedText.create(:filename => "text", :text => TEXT, :tagged => TAGGED)
+    @lookup.link_text(@text)
     @lookup
   end
 
@@ -49,13 +51,13 @@ describe Lumix::LookupFilter do
     search('AU*').should == %w[have|AUXP]
   end
 
+  it "should find word|tag pairs" do
+    search('"have"|D*').should == %w[have|DMKD]
+  end
+
   def disabled
     it "should find exclusions" do
       search('A(!UXP DNE)').should == %w[too|ADVE]
-    end
-
-    it "should find word|tag pairs" do
-      search('"have"|D*').should == %w[have|DMKD]
     end
 
     it "should find unlimited repetitions" do

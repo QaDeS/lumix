@@ -37,7 +37,7 @@ class TaggedText
     end
 
     def exists?(attrs)
-      table.where(attrs).count != 0
+      !table.where(attrs).empty?
     end
 
     def ids

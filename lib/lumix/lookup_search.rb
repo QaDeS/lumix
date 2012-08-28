@@ -70,18 +70,20 @@ module Lumix
     end
 
     def find(*filters, &block)
-      p = Pool.new(4)
+      p = Pool.new(Lumix::CONNECTIONS)
       filters.flatten.each do |f|
         p.schedule do
           last_id = -1
           t = nil
-          f.apply(@lookup) do |text_id, s_begin, s_end, t_begin, t_end|
+          f.apply(@lookup) do |text_id, s_begin, s_end, t_begin, t_end, p_begin, p_end|
             t = TaggedText[text_id] if text_id != last_id
             last_id = text_id
           
             fname = File.basename(t.filename)
             text_snippet = Lumix::TextSnippet.new(fname, t.text, s_begin, s_end)
-            tagged_snippet = Lumix::TextSnippet.new(fname, t.tagged, t_begin, t_end)
+            tagged = t.tagged
+            tagged[([t_begin, tagged.size].min)..([t_end, tagged.size].min)] = @lookup.reconstruct_tagged(text_id, p_begin, p_end)
+            tagged_snippet = Lumix::TextSnippet.new(fname, tagged, t_begin, t_end)
             f << [text_snippet, tagged_snippet]
           end
         end

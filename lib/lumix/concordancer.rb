@@ -18,6 +18,7 @@ require 'lumix/lookup_search'
 module Lumix
   WORKERS = (ENV['LUMIX_WORKERS'] || 20).to_i
   RELINK = ENV['LUMIX_RELINK']
+  CONNECTIONS = 10
 
   DB_VERSION = 4
 
@@ -205,7 +206,7 @@ module Lumix
 
     private
     def connect(db_uri)
-      db = Sequel.connect(db_uri)
+      db = Sequel.connect(db_uri, :max_connections => CONNECTIONS)
       begin
         db.get(1)
       rescue Exception => e
@@ -241,7 +242,7 @@ module Lumix
       
       result = ''
       chunks.each do |chunk|
-        next unless chunk.empty?
+        next if chunk.empty?
         word, tag = chunk.split(/\|/)
         result << ' ' unless result.empty?
         result << "#{word}|#{tag[tag_position]}"

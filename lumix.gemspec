@@ -21,6 +21,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency 'savon'
   s.add_dependency 'curb'
   s.add_dependency 'jdbc-postgres'
+  s.add_dependency 'java_inline'
 
-  s.add_dependency 'sweet'
+  #s.add_dependency 'sweet'
 end

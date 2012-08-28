@@ -3,7 +3,7 @@ module Lumix
 
     attr_reader :results, :filter
 
-    Filter = Struct.new(:word, :tag)
+    Filter = Struct.new(:word, :tag, :ex_word, :ex_tag)
 
     def initialize(lookup, filter, &result_proc)
       @filter = filter
@@ -36,7 +36,7 @@ module Lumix
 
     def to_re(txt)
       return nil if txt.nil? || txt.empty?
-      Regexp.new('^' + txt.gsub(/\s/, '_').gsub(/\*/, '\S*').gsub(/\?/, '\S') + '$')
+      Regexp.new('^' + txt.gsub(/\s/, '_').gsub(/\*/, '\S*').gsub(/\?/, '\S') + '$', 'i')
     end
 
   end
